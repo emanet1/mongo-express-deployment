@@ -1,6 +1,6 @@
 # mongo-express-deployment
 
-Deployment of MongoDB on kubernetes
+## Deployment of MongoDB on kubernetes
 
 ![MongoDb-Deployment-Image](MonDB-2.png)
 
