@@ -56,28 +56,13 @@ sudo mv /tmp/eksctl /usr/local/bin
 * Test that your installation was successful with the following command.
 
 eksctl version
+
 # Part 2 - Creating the Kubernetes Cluster on EKS
-If needed create ssh-key with commnad ssh-keygen -f ~/.ssh/id_rsa
+* If needed create ssh-key with commnad ssh-keygen -f ~/.ssh/id_rsa
 
-Configure AWS credentials.
+* Configure AWS credentials.
 
-aws configure
-Create an EKS cluster via eksctl. It will take a while.
-eksctl create cluster \
- --name mycluster \
- --version 1.22 \
- --region us-east-1 \
- --zones us-east-1a,us-east-1b,us-east-1c \
- --nodegroup-name my-nodes \
- --node-type t2.medium \
- --nodes 1 \
- --nodes-min 1 \
- --nodes-max 2 \
- --ssh-access \
- --ssh-public-key  ~/.ssh/id_rsa.pub \
- --managed
-
-or 
+> aws configure
 
 eksctl create cluster --region us-east-1  --zones us-east-1a,us-east-1b,us-east-1c --node-type t2.medium --nodes 1 --nodes-min 1 --nodes-max 2 --name mycluster
 Note that the default value for node-type is m5.large.
