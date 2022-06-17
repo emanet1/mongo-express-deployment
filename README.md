@@ -3,7 +3,9 @@
 Deployment of MongoDB on kubernetes
 
 
-MonDB.png
+![alt text](https://github.com/[username]/[reponame]/blob/[branch]/image.jpg?raw=true)
+
+![Picture of MongoDb Deployment]]https://github.com/emanet1/mongo-express-deployment/blob/main/pic/MonDB.png?
 
 ## Part 1 - Installing kubectl and eksctl on Amazon Linux 2
 
