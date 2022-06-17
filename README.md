@@ -2,10 +2,12 @@
 Deployment of MongoDB on kubernetes
 
 # Part 1 - Installing kubectl and eksctl on Amazon Linux 2
-Install git, helm and kubectl
-** Launch an AWS EC2 instance of Amazon Linux 2 AMI (type t2.micro) with security group allowing SSH.
 
-** Connect to the instance with SSH.
+## Install git, helm and kubectl
+
+* Launch an AWS EC2 instance of Amazon Linux 2 AMI (type t2.micro) with security group allowing SSH.
+
+* Connect to the instance with SSH.
 
 Update the installed packages and package cache on your instance.
 
