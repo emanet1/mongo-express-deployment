@@ -61,8 +61,9 @@ eksctl version
 * If needed create ssh-key with commnad ssh-keygen -f ~/.ssh/id_rsa
 
 * Configure AWS credentials.
-
+```bash
 > aws configure
+```
 
 eksctl create cluster --region us-east-1  --zones us-east-1a,us-east-1b,us-east-1c --node-type t2.medium --nodes 1 --nodes-min 1 --nodes-max 2 --name mycluster
 Note that the default value for node-type is m5.large.
