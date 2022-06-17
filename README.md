@@ -392,7 +392,7 @@ kubectl create -f mongo-secret.yaml -n demo
 ```bash
 vi mongo-express.yaml
 ```
-
+```bash
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -444,6 +444,7 @@ spec:
       port: 8081
       targetPort: 8081
       nodePort: 30000
+```
 
 * Apply mongo-express deployment
 
