@@ -163,3 +163,291 @@ The node selector is used when we have to deploy a pod or group of pods on a spe
 kubectl get nodes
 ```
 * Add label <mark>runingress=nginx</mark>
+
+```bash
+kubectl label node ip-192-168-69-2.ec2.internal runingress=nginx
+```
+
+* Show labels set
+
+```bash
+ kubectl describe node ip-192-168-69-2.ec2.internal
+ ```
+
+ ### Update values.yml file to change parameters
+
+
+ * Edit values file
+
+```bash
+vim values.yaml
+```
+* Add tolerations for Master nodes
+
+```bash
+controller:
+  tolerations:
+    - key: node-role.kubernetes.io/master
+      operator: Equal
+      value: "true"
+      effect: NoSchedule
+    - key: node-role.kubernetes.io/master
+      operator: Equal
+      effect: NoSchedule
+```
+
+Setcontroller.service.externalIPs
+
+```bash
+controller:
+  service:
+    externalIPs: ["192.168.42.245","192.168.42.246"]
+```
+
+
+* To set number of replicas of the Ingress controller deployment on controller.replicaCount
+
+```bash
+controller:
+  replicaCount: 1
+```
+* If using node selector for pod assignment for the Ingress controller pods set on 
+
+controller.nodeSelector
+
+
+```bash
+controller:
+  nodeSelector:
+    kubernetes.io/os: linux
+    runingress: "nginx"
+```
+
+* Create namespace
+
+```bash
+kubectl create namespace ingress-nginx
+```
+
+* Now deploy Nginx Ingress Controller using the following commands
+
+```bash
+helm install -n ingress-nginx ingress-nginx  -f values.yaml .
+```
+
+
+* Check status of all resources iningress-nginx namespace:
+
+```bash
+kubectl get all -n ingress-nginx
+```
+
+* Pods
+
+```bash
+ kubectl get pods -n ingress-ngin
+ ```
+
+*  To check logs in the Pods use the commands:
+
+```bash
+kubectl -n ingress-nginx  logs deploy/ingress-nginx-controller
+```
+
+* To follow logs as they stream run:
+
+```bash
+kubectl -n ingress-nginx  logs deploy/ingress-nginx-controller -f
+```
+
+## Deploy Application and expose using Nginx Ingress
+
+
+* The Ingress definition method can also be viewed using explain command option:
+
+```bash
+kubectl explain ingress
+```
+
+
+### Deploy sample application and expose using ingress
+
+* Crate a temporary namespace called demo
+
+```bash
+kubectl create namespace demo
+```
+
+* Create MongoDb-deployment & service object YAML file.
+
+```bash
+cd ~/ && 
+vim mondb-deployment.yaml
+
+```
+
+
+```bash
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb-deployment
+  labels:
+    app: mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      containers:
+      - name: mongodb
+        image: mongo
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: mongo-root-username
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom: 
+            secretKeyRef:
+              name: mongodb-secret
+              key: mongo-root-password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-service
+spec:
+  selector:
+    app: mongodb
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
+```
+
+* Create MongoDB-Deployment 
+
+```bash
+kubectl create -f mondb-deployment.yaml
+```
+* check if Pods are running and deployed
+
+```bash
+kubectl get po -n demo
+```
+
+* Create ConfigMap for our MongoDB & Mongo-Express Deployment 
+
+```bash
+vi mongo-configmap.yaml
+```
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongodb-configmap
+data:
+  database_url: mongodb-service
+
+
+* Apply ConfigMap 
+
+```bash
+kubectl create -f mongo-configmap.yaml -n demo
+```
+
+* Create Secret 
+
+```bash
+vi mongo-secret.yaml
+```
+
+apiVersion: v1
+kind: Secret
+metadata:
+    name: mongodb-secret
+type: Opaque
+data:
+    mongo-root-username: dXNlcm5hbWU=
+    mongo-root-password: cGFzc3dvcmQ=
+
+
+* Apply secret Created
+
+```bash
+kubectl create -f mongo-secret.yaml -n demo
+```
+
+* create mongo-express deployment
+
+```bash
+vi mongo-express.yaml
+```
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-express
+  labels:
+    app: mongo-express
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo-express
+  template:
+    metadata:
+      labels:
+        app: mongo-express
+    spec:
+      containers:
+      - name: mongo-express
+        image: mongo-express
+        ports:
+        - containerPort: 8081
+        env:
+        - name: ME_CONFIG_MONGODB_ADMINUSERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: mongo-root-username
+        - name: ME_CONFIG_MONGODB_ADMINPASSWORD
+          valueFrom: 
+            secretKeyRef:
+              name: mongodb-secret
+              key: mongo-root-password
+        - name: ME_CONFIG_MONGODB_SERVER
+          valueFrom: 
+            configMapKeyRef:
+              name: mongodb-configmap
+              key: database_url
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-express-service
+spec:
+  selector:
+    app: mongo-express
+  type: LoadBalancer  
+  ports:
+    - protocol: TCP
+      port: 8081
+      targetPort: 8081
+      nodePort: 30000
+
+* Apply mongo-express deployment
+
+
+```bash
+kubectl create -f mongo-express.yaml -n demo
+```
