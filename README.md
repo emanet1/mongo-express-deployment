@@ -2,6 +2,9 @@
 
 Deployment of MongoDB on kubernetes
 
+
+MonDB.png
+
 ## Part 1 - Installing kubectl and eksctl on Amazon Linux 2
 
 ### Install git, helm and kubectl
@@ -278,6 +281,8 @@ kubectl explain ingress
 kubectl create namespace demo
 ```
 
+
+
 * Create MongoDb-deployment & service object YAML file.
 
 ```bash
@@ -452,3 +457,113 @@ spec:
 ```bash
 kubectl create -f mongo-express.yaml -n demo
 ```
+
+
+* Check running Pods
+
+```bash
+kubectl get po -n demo
+```
+
+* Create a CronJob for our Application to run once a day.
+
+```bash
+vi cronjob.yaml
+```
+
+```bash
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: app-api-job
+spec:
+  schedule: "59 23 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name:  mongo-express
+            image:  mongo-express
+            imagePullPolicy: IfNotPresent
+            command:
+            - /bin/sh
+            - -c
+            - date; echo jon is working
+          restartPolicy: OnFailure
+
+```
+
+
+### Create ingress route
+
+
+* Now, declare an Ingress to route requests to/mongo-express. Check out the Ingress’ rules field that declares how requests are passed along.
+
+```bash
+vi ingress.yaml
+```
+
+```bash
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: nginx
+spec:
+  controller: k8s.io/ingress-nginx
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-app-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: augusiunetask.com
+    http:
+      paths:
+        - path: /mongo-express
+          pathType: Prefix
+          backend:
+            service:
+              name: mongo-express-service
+              port:
+                number: 30000
+```
+
+
+* Create ingress resource with kubectl:
+
+```bash
+kubectl apply -f ingress.yaml -n demo
+```
+
+* List configured ingress:
+
+```bash
+ kubectl get ingress -n demo
+```
+* List Service objects:
+
+```bash
+kubectl get svc 
+```
+
+### Check if Application is Live, use LoadBalancer DNS Name or Worker Node Public IP on Port 3000.
+
+```bash
+https://<worker-node-publicIP>:30000
+
+
+# Uninstalling the Chart
+To remove nginx ingress controller and all its associated resources that we deployed by Helm execute below command in your terminal.
+
+```bash
+helm -n ingress-nginx uninstall ingress-nginx
+```
+
+
+# Thanks for Exploring my Project. 
+
+
