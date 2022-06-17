@@ -109,4 +109,57 @@ $ eksctl create cluster --help
 
 # Part 3 - Install Nginx Ingress Controller Kubernetes using Helm
 
+## Step 1: Install helm 3 in our workstation
 
+* Install helm 3 in your Workstation
+
+```bash
+cd ~/
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+chmod 700 get_helm.sh
+./get_helm.sh
+```
+
+* Let’s query for helm package version to validate working installation:
+
+```bash
+helm version
+```
+# Part 4 -  Deploy Nginx Ingress Controller
+
+* Download latest stable release of Nginx Ingress Controller code:
+
+```bash
+controller_tag=$(curl -s https://api.github.com/repos/kubernetes/ingress-nginx/releases/latest | grep tag_name | cut -d '"' -f 4)
+```
+
+```bash
+wget https://github.com/kubernetes/ingress-nginx/archive/refs/tags/${controller_tag}.tar.gz
+```
+* Extract the file downloaded:
+
+```bash
+tar xvf ${controller_tag}.tar.gz
+```
+
+* Switch to the directory created:
+
+```bash
+cd ingress-nginx-${controller_tag}
+```
+
+* Change your working directory to charts folder:
+
+```bash
+cd charts/ingress-nginx/
+```
+
+### Label nodes that will run Ingress Controller Pods
+The node selector is used when we have to deploy a pod or group of pods on a specific group of nodes that passed the criteria defined in the configuration file.
+
+* List nodes:
+
+```bash
+kubectl get nodes
+```
+* Add label <mark>runingress=nginx</mark>
